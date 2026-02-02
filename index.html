@@ -44,8 +44,8 @@
  <body class="h-full bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 overflow-auto">
   <div id="app" class="w-full min-h-full p-6 md:p-8"><!-- Header -->
    <header class="text-center mb-8 fade-in relative"><button onclick="showSettingsModal()" class="absolute top-0 right-0 md:right-4 px-4 py-2 bg-white/20 hover:bg-white/30 backdrop-blur text-white font-semibold rounded-xl transition-all shadow-lg border border-white/30 inline-flex items-center gap-2 text-sm md:text-base"> <span class="text-xl">⚙️</span> <span class="hidden sm:inline">Pengaturan</span> </button>
-    <div class="inline-flex items-center gap-3 mb-4"><span class="text-4xl">🗳️</span>
-     <h1 id="main-title" class="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg">Pemilihan Ketua</h1>
+    <div class="inline-flex items-center gap-3 mb-4 group"><span class="text-4xl">🗳️</span>
+     <h1 id="main-title" class="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg cursor-pointer hover:opacity-80 transition-opacity" onclick="showQuickEditTitle()" title="Klik untuk edit judul">Pemilihan Ketua</h1><button onclick="showQuickEditTitle()" class="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all text-white text-sm opacity-70 hover:opacity-100" title="Edit Judul"> ✏️ </button>
     </div>
     <p class="text-purple-200 text-lg">Pilih calon favoritmu!</p>
    </header><!-- Voting Cards -->
@@ -61,7 +61,18 @@
      <p class="text-purple-200">Total suara: <span id="total-votes" class="font-bold text-white">0</span></p><button id="reset-btn" onclick="showConfirmModal()" class="px-4 py-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg font-medium transition-all text-sm hidden"> 🔄 Reset Voting </button>
     </div>
    </div><!-- Toast Container -->
-   <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div><!-- Voter Name Modal -->
+   <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div><!-- Quick Edit Title Modal -->
+   <div id="quick-title-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden items-center justify-center">
+    <div class="bg-white rounded-2xl p-6 max-w-md mx-4 w-full">
+     <div class="text-center mb-4"><span class="text-4xl mb-2 block">📝</span>
+      <h3 class="text-xl font-bold text-gray-800">Edit Judul</h3>
+     </div>
+     <form id="quick-title-form" onsubmit="handleQuickTitleSubmit(event)"><label for="quick-title-input" class="block text-sm font-medium text-gray-700 mb-2">Judul Voting</label> <input type="text" id="quick-title-input" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none transition-colors" placeholder="Masukkan judul voting" required maxlength="100">
+      <div class="flex gap-3 mt-6"><button type="button" onclick="hideQuickEditTitle()" class="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-all"> Batal </button> <button type="submit" class="flex-1 px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-all"> 💾 Simpan </button>
+      </div>
+     </form>
+    </div>
+   </div><!-- Voter Name Modal -->
    <div id="voter-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden items-center justify-center">
     <div class="bg-white rounded-2xl p-6 max-w-sm mx-4 w-full">
      <div class="text-center mb-4"><span class="text-4xl mb-2 block">🗳️</span>
@@ -294,6 +305,42 @@
       if (titleEl) {
         titleEl.textContent = config.voting_title || defaultConfig.voting_title;
       }
+    }
+
+    // Show quick edit title modal
+    function showQuickEditTitle() {
+      const modal = document.getElementById('quick-title-modal');
+      const input = document.getElementById('quick-title-input');
+      input.value = config.voting_title || defaultConfig.voting_title;
+      
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      
+      setTimeout(() => input.focus(), 100);
+    }
+
+    // Hide quick edit title modal
+    function hideQuickEditTitle() {
+      const modal = document.getElementById('quick-title-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Handle quick title submit
+    function handleQuickTitleSubmit(event) {
+      event.preventDefault();
+      
+      const input = document.getElementById('quick-title-input');
+      const newTitle = input.value.trim();
+      
+      if (!newTitle) {
+        showToast('Judul tidak boleh kosong!', 'warning');
+        return;
+      }
+
+      window.elementSdk.setConfig({ voting_title: newTitle });
+      showToast('Judul berhasil diubah!');
+      hideQuickEditTitle();
     }
 
     // Show toast notification
@@ -724,5 +771,5 @@
     renderResults();
     updateTitle();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c7baa6e013f9c33',t:'MTc3MDA1NjA0MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c7baa6df5807a47',t:'MTc3MDA1NjA0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
